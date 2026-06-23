@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Phonics Fluency Portal v1.2</title>
+  <meta name="theme-color" content="#2b2140" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fluency Portal" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+
+  <style>
+    :root {
+      --bg: #171327;
+      --panel: #241d38;
+      --panel2: #30264b;
+      --text: #fbf7ff;
+      --muted: #d9cdeb;
+      --accent: #f4c95d;
+      --pink: #f0a6ca;
+      --blue: #8ecae6;
+      --green: #95d5b2;
+      --bad: #ff7a90;
+      --good: #63e6be;
+      --line: rgba(255,255,255,.13);
+      --shadow: 0 18px 50px rgba(0,0,0,.32);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(244,201,93,.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(142,202,230,.14), transparent 36%),
+        var(--bg);
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    .app { max-width: 1120px; margin: 0 auto; padding: 18px; }
+    .topbar { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-bottom: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 58px; height: 58px; border-radius: 19px;
+      background: linear-gradient(135deg, var(--accent), var(--pink));
+      color: #171327; display: grid; place-items: center; font-size: 30px;
+      box-shadow: var(--shadow);
+    }
+    h1,h2,h3,p { margin-top: 0; }
+    h1 { margin-bottom: 2px; font-size: clamp(1.45rem, 3vw, 2.2rem); letter-spacing: -.02em; }
+    .subtitle { color: var(--muted); margin: 0; line-height: 1.35; }
+    .pillbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .pill {
+      padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12); color: var(--text); font-weight: 800; white-space: nowrap;
+    }
+    .nav { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 14px; margin-bottom: 8px; }
+    .nav button {
+      border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.08); color: var(--text);
+      border-radius: 999px; padding: 10px 14px; font-weight: 900; white-space: nowrap; cursor: pointer;
+    }
+    .nav button.active { background: var(--accent); color: #171327; border-color: var(--accent); }
+    .screen { display: none; }
+    .screen.active { display: block; animation: fade .18s ease; }
+    @keyframes fade { from { opacity:.45; transform: translateY(5px);} to { opacity:1; transform: translateY(0);} }
+
+    .hero, .card {
+      background: rgba(36,29,56,.94);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 28px rgba(0,0,0,.25);
+    }
+    .hero {
+      padding: 18px; margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(244,201,93,.17), rgba(142,202,230,.13));
+      box-shadow: var(--shadow);
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.35fr .85fr; gap: 16px; align-items: stretch; }
+    .mission {
+      background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px; padding: 15px;
+    }
+    .mission p { color: var(--muted); line-height: 1.45; margin-bottom: 0; }
+    .card { padding: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+    .zone-card { min-height: 188px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform .12s ease, border-color .12s ease; }
+    .zone-card:hover { border-color: rgba(244,201,93,.5); }
+    .zone-card:active { transform: scale(.985); }
+    .zone-icon { font-size: 44px; margin-bottom: 6px; }
+    .zone-card h3 { margin-bottom: 6px; font-size: 1.08rem; }
+    .zone-card p { margin: 0; color: var(--muted); line-height: 1.35; font-size: .95rem; }
+    .badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .mini-badge { padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,.08); color: var(--muted); font-size: .78rem; font-weight: 900; }
+
+    .big-button, .action-btn {
+      border: 0; border-radius: 16px; padding: 12px 14px; font-weight: 950;
+      cursor: pointer; min-height: 48px; box-shadow: 0 12px 24px rgba(0,0,0,.2);
+    }
+    .big-button { background: var(--accent); color: #171327; }
+    .big-button.secondary { background: var(--blue); color: #061722; }
+    .big-button.pink { background: var(--pink); color: #22101b; }
+    .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .action-btn { background: var(--blue); color: #061722; min-height: auto; padding: 10px 13px; }
+    .action-btn.good { background: var(--good); color: #052016; }
+    .action-btn.warning { background: var(--accent); color: #171327; }
+    .action-btn.danger { background: var(--bad); color: #26030a; }
+
+    .game-layout { display: grid; grid-template-columns: 1.1fr .55fr; gap: 14px; align-items: start; }
+    .score-panel { position: sticky; top: 12px; }
+    .zone-header { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 16px; }
+    .zone-title { display: flex; align-items: center; gap: 10px; }
+    .zone-title .emoji { font-size: 40px; }
+    .select-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+    .chip {
+      border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.08); color: var(--text);
+      border-radius: 999px; padding: 9px 12px; font-weight: 900; cursor: pointer;
+    }
+    .chip.active { background: var(--accent); color: #171327; border-color: var(--accent); }
+    .lesson-box, .status-note {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px; padding: 14px; color: var(--muted); line-height: 1.45; margin-bottom: 12px;
+    }
+    .lesson-box strong, .status-note strong { color: var(--text); }
+    .status-note { background: rgba(99,230,190,.12); border-color: rgba(99,230,190,.25); }
+    .status-note strong { color: var(--good); }
+
+    .question-box {
+      background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.11);
+      border-radius: 20px; padding: 18px; margin: 16px 0;
+    }
+    .question-label { color: var(--muted); font-weight: 900; font-size: .88rem; margin-bottom: 8px; }
+    .question { font-size: clamp(1.35rem, 4vw, 2.35rem); line-height: 1.18; font-weight: 950; letter-spacing: -.02em; margin-bottom: 12px; }
+    .passage {
+      font-size: clamp(1.15rem, 3vw, 1.65rem); line-height: 1.62; background: rgba(255,255,255,.06);
+      border: 1px dashed rgba(255,255,255,.18); border-radius: 16px; padding: 14px; color: #fff;
+    }
+    .word-target {
+      display: inline-block; padding: 5px 8px; border-radius: 10px; background: rgba(244,201,93,.18); border: 1px solid rgba(244,201,93,.25); margin: 2px;
+    }
+    .answers { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .answer {
+      border: 1px solid rgba(255,255,255,.13); background: rgba(255,255,255,.09); color: var(--text);
+      padding: 16px 10px; border-radius: 18px; font-size: 1.12rem; font-weight: 950; cursor: pointer; min-height: 64px;
+    }
+    .answer.correct { background: var(--good); color: #052016; border-color: var(--good); }
+    .answer.wrong { background: var(--bad); color: #26030a; border-color: var(--bad); }
+    .feedback { min-height: 36px; margin: 12px 0 4px; font-size: 1.05rem; font-weight: 950; }
+    .feedback.good { color: var(--good); }
+    .feedback.bad { color: var(--bad); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .stat { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 12px; }
+    .stat .num { font-size: 1.35rem; font-weight: 950; color: var(--accent); }
+    .stat .label { color: var(--muted); font-size: .82rem; font-weight: 900; }
+    .progress-list { margin: 12px 0 0; display: grid; gap: 8px; }
+    .progress-item { display: flex; justify-content: space-between; gap: 8px; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; color: var(--muted); }
+    .progress-item strong { color: var(--text); }
+
+    .cursive-layout { display: grid; grid-template-columns: .75fr 1.25fr; gap: 14px; align-items: start; }
+    .letter-display {
+      display: grid; place-items: center; min-height: 180px; background: rgba(255,255,255,.07);
+      border: 1px dashed rgba(255,255,255,.2); border-radius: 20px; margin: 12px 0;
+    }
+    .cursive-letter {
+      font-family: "Segoe Script", "Comic Sans MS", "Trebuchet MS", cursive;
+      font-size: 5.8rem; color: var(--accent); line-height: 1; text-align: center;
+    }
+    .trace-word {
+      font-family: "Segoe Script", "Comic Sans MS", "Trebuchet MS", cursive;
+      font-size: 2.8rem; color: rgba(255,255,255,.42); text-align: center; padding: 8px;
+    }
+    .canvas-wrap { background: #fff; border-radius: 20px; padding: 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    #writingCanvas {
+      display: block; width: 100%; height: 360px;
+      background:
+        linear-gradient(to bottom, transparent 23%, rgba(59,130,246,.22) 23%, rgba(59,130,246,.22) 24%, transparent 24%),
+        linear-gradient(to bottom, transparent 49%, rgba(239,68,68,.25) 49%, rgba(239,68,68,.25) 50%, transparent 50%),
+        linear-gradient(to bottom, transparent 74%, rgba(59,130,246,.22) 74%, rgba(59,130,246,.22) 75%, transparent 75%),
+        #fff;
+      border-radius: 14px; touch-action: none; cursor: crosshair;
+    }
+    .rating-row { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 10px; }
+    .rating-row button {
+      border: 0; border-radius: 14px; padding: 12px 8px; font-weight: 950;
+      background: rgba(255,255,255,.1); color: var(--text); cursor: pointer;
+    }
+    .rating-row button.selected { background: var(--accent); color: #171327; }
+
+    .dashboard-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+    .bar { height: 12px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; margin-top: 8px; }
+    .bar > span { display: block; height: 100%; width: 0%; background: var(--accent); border-radius: inherit; transition: width .25s ease; }
+    .table { width: 100%; border-collapse: collapse; color: var(--muted); }
+    .table th, .table td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; font-size: .94rem; }
+    .table th { color: var(--text); }
+    .settings-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .input {
+      width: 100%; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08); color: var(--text); outline: none;
+    }
+    .tiny { font-size: .82rem; color: var(--muted); line-height: 1.35; }
+    .hide { display:none !important; }
+
+    @media (max-width: 860px) {
+      .hero-grid,.game-layout,.cursive-layout { grid-template-columns: 1fr; }
+      .grid,.dashboard-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .score-panel { position: static; }
+    }
+    @media (max-width: 560px) {
+      .app { padding: 12px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .pillbar { justify-content: flex-start; }
+      .grid,.answers,.dashboard-grid,.settings-grid,.rating-row { grid-template-columns: 1fr; }
+      .zone-card { min-height: 160px; }
+      #writingCanvas { height: 310px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">📚</div>
+        <div>
+          <h1>Phonics Fluency Portal</h1>
+          <p class="subtitle">5th Grade Reading Aloud + Phonics + Vocabulary + Modern Simplified Cursive · v1.2 PWA Beta</p>
+        </div>
+      </div>
+      <div class="pillbar">
+        <div class="pill">Stars: <span id="starPill">0</span></div>
+        <div class="pill">Streak: <span id="streakPill">0</span></div>
+        <div class="pill">Level: <span id="levelPill">Starter</span></div>
+      </div>
+    </header>
+
+    <nav class="nav" id="nav">
+      <button data-screen="home" class="active">🏠 Portal</button>
+      <button data-screen="practice">🎯 Practice</button>
+      <button data-screen="cursive">✍️ Cursive</button>
+      <button data-screen="dashboard">📊 Parent Dashboard</button>
+      <button data-screen="settings">⚙️ Settings</button>
+    </nav>
+
+    <main>
+      <section class="screen active" id="home">
+        <div class="hero">
+          <div class="hero-grid">
+            <div class="mission">
+              <h2>Today’s Mission</h2>
+              <p id="dailyMission">Complete one phonics round, one read-aloud fluency round, one vocabulary round, and one cursive round.</p>
+              <div class="action-row">
+                <button class="big-button" onclick="startZone('phonics')">Start Phonics</button>
+                <button class="big-button secondary" onclick="startZone('fluency')">Read Aloud</button>
+                <button class="big-button pink" onclick="showScreen('cursive')">Cursive</button>
+              </div>
+            </div>
+            <div class="mission">
+              <h2>Best Next Skill</h2>
+              <p id="recommendation">Start with multisyllable decoding and controlled read-aloud pacing.</p>
+              <div class="bar"><span id="masteryBar"></span></div>
+              <p class="tiny" id="masteryText" style="margin-top:8px;">Overall accuracy: 0%</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card zone-card" onclick="startZone('phonics')">
+            <div><div class="zone-icon">🔤</div><h3>Phonics Power</h3><p>Decode unfamiliar words using syllables, prefixes, suffixes, vowel teams, and word parts.</p></div>
+            <div class="badge-row"><span class="mini-badge">Decoding</span><span class="mini-badge">Word Parts</span></div>
+          </div>
+          <div class="card zone-card" onclick="startZone('fluency')">
+            <div><div class="zone-icon">🎙️</div><h3>Read-Aloud Arena</h3><p>Practice short passages for smoothness, expression, and pacing.</p></div>
+            <div class="badge-row"><span class="mini-badge">Fluency</span><span class="mini-badge">WPM</span></div>
+          </div>
+          <div class="card zone-card" onclick="startZone('vocab')">
+            <div><div class="zone-icon">💎</div><h3>Vocabulary Builder</h3><p>Build 4th–6th grade vocabulary with kid-friendly meanings and context clues.</p></div>
+            <div class="badge-row"><span class="mini-badge">4th–6th</span><span class="mini-badge">Context</span></div>
+          </div>
+          <div class="card zone-card" onclick="startZone('sight')">
+            <div><div class="zone-icon">⚡</div><h3>Sight Word Speed</h3><p>Practice high-frequency words and tricky words for faster reading aloud.</p></div>
+            <div class="badge-row"><span class="mini-badge">Speed</span><span class="mini-badge">Accuracy</span></div>
+          </div>
+          <div class="card zone-card" onclick="startZone('themes')">
+            <div><div class="zone-icon">🦄</div><h3>Theme Quest</h3><p>Choose animals, princess, baking, cheer, swimming, fantasy, or adventure passages.</p></div>
+            <div class="badge-row"><span class="mini-badge">Choice</span><span class="mini-badge">Motivation</span></div>
+          </div>
+          <div class="card zone-card" onclick="showScreen('cursive')">
+            <div><div class="zone-icon">✍️</div><h3>Cursive Studio</h3><p>Modern simplified cursive practice using the Lenovo stylus.</p></div>
+            <div class="badge-row"><span class="mini-badge">Stylus</span><span class="mini-badge">Readable</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="practice">
+        <div class="game-layout">
+          <div class="card">
+            <div class="zone-header">
+              <div class="zone-title">
+                <div class="emoji" id="zoneEmoji">🔤</div>
+                <div>
+                  <h2 id="zoneTitle">Phonics Power</h2>
+                  <p class="subtitle" id="zoneSubtitle">Decode unfamiliar words with confidence.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="lesson-box" id="lessonBox"><strong>Strategy:</strong> Break the word into parts first. Do not guess from the first letter.</div>
+
+            <div class="select-row" id="themeChips">
+              <button class="chip active" data-theme="animals">Animals</button>
+              <button class="chip" data-theme="princess">Princess</button>
+              <button class="chip" data-theme="baking">Baking</button>
+              <button class="chip" data-theme="cheer">Cheer</button>
+              <button class="chip" data-theme="swim">Swimming</button>
+              <button class="chip" data-theme="fantasy">Fantasy</button>
+              <button class="chip" data-theme="sports">Sports</button>
+            </div>
+
+            <div class="question-box">
+              <div class="question-label" id="questionLabel">Practice</div>
+              <div class="question" id="questionText">Press New Practice to begin.</div>
+              <div class="passage" id="passageBox">Your word or passage will appear here.</div>
+            </div>
+
+            <div class="answers" id="answerGrid"></div>
+            <div class="feedback" id="feedback"></div>
+
+            <div class="action-row">
+              <button class="action-btn good" onclick="newPractice()">New Practice</button>
+              <button class="action-btn" onclick="markReadCorrect()">Read Correctly</button>
+              <button class="action-btn warning" onclick="markNeedsPractice()">Needs Practice</button>
+              <button class="action-btn" onclick="showScreen('home')">Back to Portal</button>
+            </div>
+          </div>
+
+          <aside class="card score-panel">
+            <h3>Session Stats</h3>
+            <div class="stats-grid">
+              <div class="stat"><div class="num" id="sessionCorrect">0</div><div class="label">Correct</div></div>
+              <div class="stat"><div class="num" id="sessionAttempted">0</div><div class="label">Attempted</div></div>
+              <div class="stat"><div class="num" id="sessionStars">0</div><div class="label">Stars Today</div></div>
+              <div class="stat"><div class="num" id="sessionStreak">0</div><div class="label">Hot Streak</div></div>
+            </div>
+            <div class="progress-list">
+              <div class="progress-item"><strong>Current Zone</strong><span id="sideZone">Phonics</span></div>
+              <div class="progress-item"><strong>Theme</strong><span id="sideTheme">Animals</span></div>
+              <div class="progress-item"><strong>Weakest Skill</strong><span id="weakSkill">Not enough data</span></div>
+              <div class="progress-item"><strong>Best Skill</strong><span id="bestSkill">Not enough data</span></div>
+            </div>
+            <div class="lesson-box" style="margin-top:14px;">
+              <strong>Parent Tip:</strong> Her comprehension is strong. The priority is decoding unfamiliar words and smoother oral pacing.
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="cursive">
+        <div class="cursive-layout">
+          <div class="card">
+            <h2>Cursive Studio</h2>
+            <p class="subtitle">Modern simplified cursive practice with stylus or finger.</p>
+
+            <div class="select-row">
+              <button class="chip active" data-cursive-level="strokes">Strokes</button>
+              <button class="chip" data-cursive-level="letters">Letters</button>
+              <button class="chip" data-cursive-level="words">Words</button>
+              <button class="chip" data-cursive-level="sentences">Sentences</button>
+            </div>
+
+            <div class="letter-display">
+              <div>
+                <div class="cursive-letter" id="cursiveTarget">i</div>
+                <div class="trace-word" id="traceTarget">Trace: i</div>
+              </div>
+            </div>
+
+            <div class="lesson-box" id="cursiveInstruction">Use a gentle slant, smooth curves, and easy connections. Do not over-loop.</div>
+            <p class="tiny">Modern simplified cursive goal: readable, smooth, connected writing without ornate loops.</p>
+
+            <div class="action-row">
+              <button class="action-btn good" onclick="newCursiveTarget()">New Target</button>
+              <button class="action-btn" onclick="completeCursive()">Mark Complete</button>
+              <button class="action-btn warning" onclick="clearCanvas()">Clear</button>
+            </div>
+
+            <div class="rating-row">
+              <button onclick="rateCursive(1)" id="rate1">⭐ Needs Work</button>
+              <button onclick="rateCursive(2)" id="rate2">⭐⭐ Good</button>
+              <button onclick="rateCursive(3)" id="rate3">⭐⭐⭐ Great</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Writing Pad</h2>
+            <p class="subtitle">Use the Lenovo stylus. Practice over the guide lines.</p>
+            <div class="canvas-wrap"><canvas id="writingCanvas"></canvas></div>
+            <p class="tiny" style="margin-top:10px;">Tip: full-screen browser mode usually makes stylus practice smoother.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="dashboard">
+        <div class="hero">
+          <h2>Parent Dashboard</h2>
+          <p class="subtitle">Progress is saved on this tablet/browser using local storage. Backup before updates.</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card stat"><div class="num" id="dashTotalStars">0</div><div class="label">Total Stars</div></div>
+          <div class="card stat"><div class="num" id="dashAccuracy">0%</div><div class="label">Overall Accuracy</div></div>
+          <div class="card stat"><div class="num" id="dashCursiveDays">0</div><div class="label">Cursive Completed</div></div>
+          <div class="card stat"><div class="num" id="dashAttempted">0</div><div class="label">Attempted</div></div>
+          <div class="card stat"><div class="num" id="dashCorrect">0</div><div class="label">Correct</div></div>
+          <div class="card stat"><div class="num" id="dashLongestStreak">0</div><div class="label">Longest Hot Streak</div></div>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <h3>Skill Breakdown</h3>
+          <table class="table">
+            <thead><tr><th>Skill</th><th>Correct</th><th>Attempted</th><th>Accuracy</th></tr></thead>
+            <tbody id="skillTable"></tbody>
+          </table>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <h3>Backup + Update Tools</h3>
+          <div class="lesson-box">
+            <strong>Update rule:</strong> Download a parent backup before installing a new version. Restore it after the update if progress does not carry over.
+          </div>
+          <div class="action-row">
+            <button class="action-btn" onclick="exportProgress()">Preview Progress</button>
+            <button class="action-btn good" onclick="downloadBackupFile()">Download Parent Backup</button>
+            <button class="action-btn" onclick="triggerImportBackup()">Import Backup</button>
+            <button class="action-btn warning" onclick="checkForAppUpdate()">Check / Reload App Update</button>
+            <button class="action-btn danger" onclick="resetProgress()">Reset Progress</button>
+          </div>
+          <input id="backupFileInput" type="file" accept="application/json,.json" class="hide" />
+          <div class="status-note" id="backupStatus"><strong>Backup rule:</strong> Save backup JSON files in Google Drive > Kids Learning Apps > Phonics Fluency Portal > Backups.</div>
+          <textarea id="exportBox" class="input" rows="8" placeholder="Progress preview or backup import notes will appear here." style="margin-top:10px;"></textarea>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <h3>Shared Parent Dashboard Later</h3>
+          <p class="subtitle">This app now exports a structured backup file that can later feed a combined parent dashboard with Monster Math Arcade.</p>
+        </div>
+      </section>
+
+      <section class="screen" id="settings">
+        <div class="card">
+          <h2>Settings</h2>
+          <div class="settings-grid">
+            <label><strong>Student Name</strong><input class="input" id="studentName" placeholder="Reader" /></label>
+            <label><strong>Daily Star Goal</strong><select class="input" id="dailyGoal"><option value="10">10 stars</option><option value="20" selected>20 stars</option><option value="30">30 stars</option><option value="40">40 stars</option></select></label>
+            <label><strong>Reading Level</strong><select class="input" id="readingLevel"><option value="4">4th Grade Support</option><option value="5" selected>5th Grade On-Ramp</option><option value="6">6th Grade Stretch</option></select></label>
+            <label><strong>Fluency Timer</strong><select class="input" id="fluencyTimer"><option value="0">No timer</option><option value="60" selected>60 seconds</option><option value="90">90 seconds</option><option value="120">120 seconds</option></select></label>
+          </div>
+          <div class="action-row">
+            <button class="action-btn good" onclick="saveSettings()">Save Settings</button>
+            <button class="action-btn" onclick="loadSettingsToForm()">Reload</button>
+          </div>
+          <div class="lesson-box" style="margin-top:14px;">
+            <strong>Daily rule:</strong> Keep practice around 20 minutes. Fluency grows from short, consistent reps.
+          </div>
+          <div class="lesson-box">
+            <strong>Easier update flow:</strong> Parent Dashboard → Download Parent Backup → install/open the new app version → Parent Dashboard → Import Backup.
+          </div>
+          <div class="lesson-box">
+            <strong>Install note:</strong> The best install experience requires the PWA package to be hosted on a normal HTTPS static host. Google Drive is excellent for storing backups and files, but it is not reliable as true PWA hosting.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+const STORAGE_KEY = "phonicsFluencyPortal_v1";
+const APP_VERSION = "1.2";
+
+const defaultState = {
+  appId: "phonics_fluency_portal",
+  appVersion: APP_VERSION,
+  sharedParentDashboardReady: true,
+  studentName: "Reader",
+  stars: 0,
+  streakDays: 0,
+  lastPracticeDate: null,
+  dailyStars: 0,
+  lastStarDate: null,
+  longestHotStreak: 0,
+  settings: { dailyGoal: 20, readingLevel: 5, fluencyTimer: 60 },
+  stats: {
+    attempted: 0,
+    correct: 0,
+    skills: {
+      phonics: { attempted: 0, correct: 0 },
+      fluency: { attempted: 0, correct: 0 },
+      vocabulary: { attempted: 0, correct: 0 },
+      sightWords: { attempted: 0, correct: 0 },
+      comprehension: { attempted: 0, correct: 0 }
+    }
+  },
+  cursive: { completed: 0, ratings: [], lastCompletedDate: null }
+};
+
+let state = loadState();
+let currentZone = "phonics";
+let currentTheme = "animals";
+let currentPractice = null;
+let locked = false;
+let session = { correct: 0, attempted: 0, stars: 0, hotStreak: 0 };
+let cursiveLevel = "strokes";
+let currentRating = 0;
+
+const zones = {
+  phonics: { emoji:"🔤", title:"Phonics Power", subtitle:"Decode unfamiliar words with confidence.", lesson:"<strong>Strategy:</strong> Break the word into parts first. Look for prefixes, suffixes, vowel teams, and syllables.", skill:"phonics" },
+  fluency: { emoji:"🎙️", title:"Read-Aloud Arena", subtitle:"Practice smooth oral reading.", lesson:"<strong>Strategy:</strong> Read in phrases, not one word at a time. Pause at punctuation.", skill:"fluency" },
+  vocab: { emoji:"💎", title:"Vocabulary Builder", subtitle:"Build 4th–6th grade vocabulary.", lesson:"<strong>Strategy:</strong> Use context clues before guessing the meaning.", skill:"vocabulary" },
+  sight: { emoji:"⚡", title:"Sight Word Speed", subtitle:"Build automatic word recognition.", lesson:"<strong>Strategy:</strong> Say the word smoothly, then use it in a phrase.", skill:"sightWords" },
+  themes: { emoji:"🦄", title:"Theme Quest", subtitle:"Choose fun passages and word challenges.", lesson:"<strong>Strategy:</strong> Enjoy the story, but still slow down for unfamiliar words.", skill:"fluency" }
+};
+
+const themeData = {
+  animals: { icon:"🐾", words:["migration","habitat","predator","camouflage","nocturnal","territory"], passage:"The young fox moved quietly near the edge of the forest. Its camouflage helped it hide while it searched for food." },
+  princess: { icon:"👑", words:["kingdom","courageous","banquet","chamber","royal","journey"], passage:"Princess Mira crossed the stone bridge with a courageous smile. She knew the kingdom needed her help before sunset." },
+  baking: { icon:"🧁", words:["recipe","ingredient","mixture","delicate","temperature","decorate"], passage:"Julia followed the recipe carefully. The delicate cupcakes needed the right temperature and a smooth mixture." },
+  cheer: { icon:"📣", words:["routine","formation","confident","balance","practice","performance"], passage:"The cheer team practiced their routine until every formation looked sharp, confident, and full of energy." },
+  swim: { icon:"🏊", words:["freestyle","distance","surface","current","breathe","endurance"], passage:"At swim practice, Ava focused on her breathing and endurance while moving smoothly across the surface of the pool." },
+  fantasy: { icon:"🐉", words:["ancient","Yukon","wizard","portal","creature","enchanted"], passage:"Beyond the ancient portal, a small dragon guarded the enchanted map that pointed toward the Yukon mountains." },
+  sports: { icon:"🏀", words:["strategy","defense","accurate","momentum","tournament","athlete"], passage:"The athlete studied the defense and waited for the perfect moment to shift the momentum of the game." }
+};
+
+const vocabBank = [
+  {word:"analyze", meaning:"to study something carefully", sentence:"We analyze the clues before choosing an answer."},
+  {word:"contrast", meaning:"to tell how things are different", sentence:"Contrast the dragon and the fox."},
+  {word:"evidence", meaning:"details that prove or support an idea", sentence:"Use evidence from the passage."},
+  {word:"expand", meaning:"to grow or make larger", sentence:"Her vocabulary will expand with practice."},
+  {word:"fortunate", meaning:"lucky or having good results", sentence:"Julia was fortunate to find the missing recipe."},
+  {word:"investigate", meaning:"to look closely to find answers", sentence:"The team will investigate the strange sound."},
+  {word:"navigate", meaning:"to find the way through", sentence:"They navigate the cave with a map."},
+  {word:"observe", meaning:"to watch carefully", sentence:"Observe how the animal moves."},
+  {word:"precise", meaning:"exact and careful", sentence:"Use precise words when reading aloud."},
+  {word:"reluctant", meaning:"not wanting to do something", sentence:"He was reluctant to cross the cold stream."},
+  {word:"summarize", meaning:"to tell the main idea briefly", sentence:"Summarize the chapter in two sentences."},
+  {word:"Yukon", meaning:"a region in northwest Canada", sentence:"The story mentioned the Yukon mountains."}
+];
+
+const sightWords = ["although","because","before","different","enough","favorite","finally","important","knowledge","probably","question","remember","sentence","through","toward","usually","without","wonderful"];
+
+const phonicsWords = [
+  {word:"uncomfortable", parts:"un-com-fort-a-ble", hint:"Prefix un- plus base comfort plus suffix -able."},
+  {word:"misunderstand", parts:"mis-un-der-stand", hint:"Break after the prefix mis-."},
+  {word:"destination", parts:"des-ti-na-tion", hint:"The ending -tion often sounds like /shun/."},
+  {word:"conversation", parts:"con-ver-sa-tion", hint:"Find the -tion ending."},
+  {word:"remarkable", parts:"re-mark-a-ble", hint:"Look for the base word mark and the ending -able."},
+  {word:"carefully", parts:"care-ful-ly", hint:"Base word care plus -ful plus -ly."},
+  {word:"creature", parts:"crea-ture", hint:"The vowel team ea can make a long e sound."},
+  {word:"ancient", parts:"an-cient", hint:"The ci can make a /sh/ sound in some words."},
+  {word:"championship", parts:"cham-pi-on-ship", hint:"Break into syllables and do not rush."},
+  {word:"temperature", parts:"tem-per-a-ture", hint:"This word often sounds shorter than it looks."}
+];
+
+const cursiveTargets = {
+  strokes: [
+    {show:"loop", trace:"Practice simple loops", instruction:"Make simple, smooth loops. Keep the slant gentle and readable."},
+    {show:"curve", trace:"Practice undercurves", instruction:"Start low, curve up, and come back down smoothly. Keep it simple."},
+    {show:"slant", trace:"Practice slants", instruction:"Use light pressure. Keep a small, consistent slant."},
+    {show:"connect", trace:"Practice connectors", instruction:"Connect letters smoothly, but keep each letter easy to read."}
+  ],
+  letters: ["i","u","w","t","e","l","a","c","d","g","h","b","k","p","j","y","q","f","z","x"].map(x => ({show:x, trace:"Trace: " + x, instruction:"Trace the simplified letter first. Then write it three times on your own."})),
+  words: ["Julia","Yukon","dragon","princess","baking","swimming","cheer","animal","courage","journey","evidence","chapter"].map(x => ({show:x, trace:x, instruction:"Write the word slowly. Use simple connections and readable spacing."})),
+  sentences: [
+    "Julia followed the recipe carefully.",
+    "The dragon guarded the ancient map.",
+    "I can read aloud with confidence.",
+    "The swimmer moved across the pool.",
+    "Use evidence from the passage.",
+    "The princess began her journey."
+  ].map(x => ({show:x, trace:x, instruction:"Copy the full sentence. Focus on readability, smooth connections, and spacing."}))
+};
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function structuredCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
+function mergeDeep(target, source){ for(const key in source){ if(source[key] && typeof source[key]==="object" && !Array.isArray(source[key])) target[key]=mergeDeep(target[key]||{},source[key]); else target[key]=source[key]; } return target; }
+function loadState(){ try { const raw=localStorage.getItem(STORAGE_KEY); return raw ? mergeDeep(structuredCopy(defaultState), JSON.parse(raw)) : structuredCopy(defaultState); } catch { return structuredCopy(defaultState); } }
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); updateUI(); }
+
+function updateDailyStarsNoSave(){ const d=today(); if(state.lastStarDate!==d){ state.dailyStars=0; state.lastStarDate=d; } }
+function accuracy(c,a){ return a ? Math.round((c/a)*100) : 0; }
+function readableSkill(s){ return {phonics:"Phonics", fluency:"Fluency", vocabulary:"Vocabulary", sightWords:"Sight Words", comprehension:"Comprehension"}[s] || s; }
+function getLevel(){ if(state.stars>=500) return "Fluency Star"; if(state.stars>=250) return "Word Wizard"; if(state.stars>=100) return "Strong Reader"; if(state.stars>=40) return "Builder"; return "Starter"; }
+
+function findSkill(type){
+  const entries=Object.entries(state.stats.skills).filter(([k,v])=>v.attempted>=3);
+  if(!entries.length) return "Not enough data";
+  entries.sort((a,b)=>accuracy(a[1].correct,a[1].attempted)-accuracy(b[1].correct,b[1].attempted));
+  return readableSkill(type==="weak" ? entries[0][0] : entries[entries.length-1][0]);
+}
+
+function updateUI(){
+  updateDailyStarsNoSave();
+  document.getElementById("starPill").textContent=state.stars;
+  document.getElementById("streakPill").textContent=state.streakDays;
+  document.getElementById("levelPill").textContent=getLevel();
+  document.getElementById("sessionCorrect").textContent=session.correct;
+  document.getElementById("sessionAttempted").textContent=session.attempted;
+  document.getElementById("sessionStars").textContent=session.stars;
+  document.getElementById("sessionStreak").textContent=session.hotStreak;
+  const acc=accuracy(state.stats.correct,state.stats.attempted);
+  document.getElementById("masteryBar").style.width=acc+"%";
+  document.getElementById("masteryText").textContent="Overall accuracy: "+acc+"%";
+  document.getElementById("recommendation").textContent=findSkill("weak")==="Not enough data" ? "Start with multisyllable decoding and controlled read-aloud pacing." : "Repeat "+findSkill("weak")+" for 5 minutes before moving on.";
+  document.getElementById("dailyMission").textContent=`Complete reading practice, vocabulary, and cursive. Today's stars: ${state.dailyStars}/${state.settings.dailyGoal}.`;
+  document.getElementById("weakSkill").textContent=findSkill("weak");
+  document.getElementById("bestSkill").textContent=findSkill("best");
+  updateDashboard();
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active", b.dataset.screen===id));
+  if(id==="dashboard") updateDashboard();
+  if(id==="cursive") resizeCanvas();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+document.getElementById("nav").addEventListener("click",e=>{ if(e.target.matches("button[data-screen]")) showScreen(e.target.dataset.screen); });
+document.querySelectorAll("#themeChips .chip").forEach(btn=>btn.addEventListener("click",()=>{ document.querySelectorAll("#themeChips .chip").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); currentTheme=btn.dataset.theme; document.getElementById("sideTheme").textContent=btn.textContent; newPractice(); }));
+
+function startZone(zone){
+  currentZone=zone;
+  const z=zones[zone];
+  document.getElementById("zoneEmoji").textContent=z.emoji;
+  document.getElementById("zoneTitle").textContent=z.title;
+  document.getElementById("zoneSubtitle").textContent=z.subtitle;
+  document.getElementById("lessonBox").innerHTML=z.lesson;
+  document.getElementById("sideZone").textContent=z.title.split(" ")[0];
+  showScreen("practice");
+  newPractice();
+}
+
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function shuffle(arr){ return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
+
+function newPractice(){
+  locked=false;
+  document.getElementById("feedback").textContent="";
+  document.getElementById("feedback").className="feedback";
+  currentPractice=generatePractice();
+  renderPractice(currentPractice);
+}
+
+function generatePractice(){
+  if(currentZone==="phonics") return phonicsPractice();
+  if(currentZone==="fluency" || currentZone==="themes") return fluencyPractice();
+  if(currentZone==="vocab") return vocabPractice();
+  if(currentZone==="sight") return sightPractice();
+  return phonicsPractice();
+}
+
+function phonicsPractice(){
+  const item=phonicsWords[rand(0,phonicsWords.length-1)];
+  const choices=shuffle([item.parts, scrambleParts(item.parts), item.word.split("").join("-"), item.word.slice(0,3)+"-"+item.word.slice(3)]);
+  return {type:"choice", skill:"phonics", label:"Decode the word", question:"Which breakdown helps you read this word?", passage:`<span class="word-target">${item.word}</span><br><br>${item.hint}`, answer:item.parts, choices, hint:item.hint};
+}
+
+function scrambleParts(parts){
+  const p=parts.split("-");
+  if(p.length<3) return parts.split("").join("-");
+  return shuffle(p).join("-");
+}
+
+function fluencyPractice(){
+  const t=themeData[currentTheme];
+  return {type:"read", skill:"fluency", label:"Read aloud", question:"Read this passage aloud smoothly. Parent marks the result.", passage:`${t.icon} ${t.passage}`, answer:"read", choices:[], hint:"Read in phrases. Pause at commas and periods. Try again smoother."};
+}
+
+function vocabPractice(){
+  const item=vocabBank[rand(0,vocabBank.length-1)];
+  const wrong=shuffle(vocabBank.filter(v=>v.word!==item.word)).slice(0,3).map(v=>v.meaning);
+  return {type:"choice", skill:"vocabulary", label:"Vocabulary", question:`What does "${item.word}" mean?`, passage:item.sentence, answer:item.meaning, choices:shuffle([item.meaning,...wrong]), hint:"Use the sentence for clues before choosing."};
+}
+
+function sightPractice(){
+  const word=sightWords[rand(0,sightWords.length-1)];
+  return {type:"read", skill:"sightWords", label:"Sight Word Speed", question:"Say this word quickly, then read the phrase.", passage:`<span class="word-target">${word}</span><br><br>Read it in a phrase: “I can read ${word} with confidence.”`, answer:"read", choices:[], hint:"This is a fast recognition word. Do not sound out every letter unless needed."};
+}
+
+function renderPractice(p){
+  document.getElementById("questionLabel").textContent=p.label;
+  document.getElementById("questionText").textContent=p.question;
+  document.getElementById("passageBox").innerHTML=p.passage;
+  const grid=document.getElementById("answerGrid");
+  grid.innerHTML="";
+  if(p.type==="choice"){
+    p.choices.forEach(choice=>{
+      const btn=document.createElement("button");
+      btn.className="answer";
+      btn.textContent=choice;
+      btn.onclick=()=>answerChoice(choice,btn);
+      grid.appendChild(btn);
+    });
+  } else {
+    grid.innerHTML='<button class="answer" onclick="markReadCorrect()">Read Correctly</button><button class="answer" onclick="markNeedsPractice()">Needs Practice</button>';
+  }
+}
+
+function answerChoice(choice,btn){
+  if(locked) return;
+  locked=true;
+  const correct=choice===currentPractice.answer;
+  recordResult(currentPractice.skill, correct);
+  if(correct){ btn.classList.add("correct"); feedback("Correct. Nice decoding work. +2 stars.", true); }
+  else {
+    btn.classList.add("wrong");
+    document.querySelectorAll(".answer").forEach(b=>{ if(b.textContent===currentPractice.answer) b.classList.add("correct"); });
+    feedback("Good try. Correct answer: "+currentPractice.answer, false);
+  }
+  saveState();
+  setTimeout(newPractice, correct ? 950 : 2000);
+}
+
+function markReadCorrect(){ if(!currentPractice) newPractice(); recordResult(currentPractice.skill, true); feedback("Marked correct. +2 stars.", true); saveState(); setTimeout(newPractice, 800); }
+function markNeedsPractice(){ if(!currentPractice) newPractice(); recordResult(currentPractice.skill, false); feedback("Marked for practice. Repeat it smoother once.", false); saveState(); }
+
+function recordResult(skill, correct){
+  session.attempted++; state.stats.attempted++; state.stats.skills[skill].attempted++;
+  if(correct){ session.correct++; session.hotStreak++; state.stats.correct++; state.stats.skills[skill].correct++; state.stars+=2; state.dailyStars+=2; session.stars+=2; state.longestHotStreak=Math.max(state.longestHotStreak,session.hotStreak); }
+  else { session.hotStreak=0; }
+  markPracticeDay();
+}
+
+function feedback(text, good){ const f=document.getElementById("feedback"); f.textContent=text; f.className="feedback "+(good?"good":"bad"); }
+function markPracticeDay(){ const d=today(); if(state.lastPracticeDate!==d){ const y=new Date(); y.setDate(y.getDate()-1); const yd=y.toISOString().slice(0,10); state.streakDays=state.lastPracticeDate===yd ? state.streakDays+1 : 1; state.lastPracticeDate=d; } }
+
+document.querySelectorAll("[data-cursive-level]").forEach(btn=>btn.addEventListener("click",()=>{ document.querySelectorAll("[data-cursive-level]").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); cursiveLevel=btn.dataset.cursiveLevel; newCursiveTarget(); }));
+
+function newCursiveTarget(){
+  const arr=cursiveTargets[cursiveLevel], target=arr[rand(0,arr.length-1)];
+  document.getElementById("cursiveTarget").textContent=target.show.length>1 ? "✍️" : target.show;
+  document.getElementById("traceTarget").textContent=target.trace;
+  document.getElementById("cursiveInstruction").textContent=target.instruction;
+  clearCanvas(); currentRating=0; updateRatingButtons();
+}
+function rateCursive(n){ currentRating=n; updateRatingButtons(); }
+function updateRatingButtons(){ [1,2,3].forEach(n=>document.getElementById("rate"+n).classList.toggle("selected", currentRating===n)); }
+function completeCursive(){
+  state.cursive.completed++; state.cursive.lastCompletedDate=today();
+  if(currentRating) state.cursive.ratings.push({date:today(),rating:currentRating,level:cursiveLevel});
+  state.stars+=3; state.dailyStars+=3; session.stars+=3; markPracticeDay(); saveState(); alert("Cursive complete! +3 stars."); newCursiveTarget();
+}
+
+const canvas=document.getElementById("writingCanvas"), ctx=canvas.getContext("2d"); let drawing=false;
+function resizeCanvas(){ const rect=canvas.getBoundingClientRect(); const ratio=Math.max(window.devicePixelRatio||1,1); canvas.width=Math.floor(rect.width*ratio); canvas.height=Math.floor(rect.height*ratio); ctx.setTransform(ratio,0,0,ratio,0,0); ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineWidth=4; ctx.strokeStyle="#171327"; }
+function pointerPos(e){ const r=canvas.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; }
+canvas.addEventListener("pointerdown",e=>{ drawing=true; canvas.setPointerCapture(e.pointerId); const p=pointerPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
+canvas.addEventListener("pointermove",e=>{ if(!drawing) return; e.preventDefault(); const p=pointerPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); });
+canvas.addEventListener("pointerup",()=>drawing=false); canvas.addEventListener("pointercancel",()=>drawing=false);
+function clearCanvas(){ resizeCanvas(); }
+window.addEventListener("resize",resizeCanvas);
+
+function updateDashboard(){
+  document.getElementById("dashTotalStars").textContent=state.stars;
+  document.getElementById("dashAccuracy").textContent=accuracy(state.stats.correct,state.stats.attempted)+"%";
+  document.getElementById("dashCursiveDays").textContent=state.cursive.completed;
+  document.getElementById("dashAttempted").textContent=state.stats.attempted;
+  document.getElementById("dashCorrect").textContent=state.stats.correct;
+  document.getElementById("dashLongestStreak").textContent=state.longestHotStreak;
+  const tbody=document.getElementById("skillTable"); tbody.innerHTML="";
+  Object.entries(state.stats.skills).forEach(([skill,data])=>{ const tr=document.createElement("tr"); tr.innerHTML=`<td>${readableSkill(skill)}</td><td>${data.correct}</td><td>${data.attempted}</td><td>${accuracy(data.correct,data.attempted)}%</td>`; tbody.appendChild(tr); });
+}
+
+function buildBackupPayload(){ return { backupType:"PhonicsFluencyPortalParentBackup", appId:"phonics_fluency_portal", sharedParentDashboardReady:true, appVersion:APP_VERSION, createdAt:new Date().toISOString(), readableDate:new Date().toLocaleString(), state }; }
+function exportProgress(){
+  const summary={ studentName:state.studentName, appId:state.appId, appVersion:APP_VERSION, date:new Date().toLocaleString(), level:getLevel(), stars:state.stars, streakDays:state.streakDays, dailyStars:state.dailyStars, accuracy:accuracy(state.stats.correct,state.stats.attempted)+"%", attempted:state.stats.attempted, correct:state.stats.correct, skills:Object.fromEntries(Object.entries(state.stats.skills).map(([k,v])=>[readableSkill(k),{attempted:v.attempted,correct:v.correct,accuracy:accuracy(v.correct,v.attempted)+"%"}])), cursiveCompleted:state.cursive.completed, cursiveRatings:state.cursive.ratings.slice(-10), updateInstruction:"Before updating, use Download Parent Backup. After opening the new version, use Import Backup if progress is missing." };
+  document.getElementById("exportBox").value=JSON.stringify(summary,null,2); setBackupStatus("Progress preview created. Use Download Parent Backup for a restore file.");
+}
+function downloadBackupFile(){
+  const payload=buildBackupPayload(); const student=(state.studentName||"reader").replace(/[^a-z0-9]+/gi,"_").replace(/^_+|_+$/g,""); const filename=`phonics_fluency_backup_${student||"reader"}_${today()}.json`;
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); setBackupStatus("Backup downloaded. Save it in Google Drive > Kids Learning Apps > Phonics Fluency Portal > Backups.");
+}
+function triggerImportBackup(){ document.getElementById("backupFileInput").click(); }
+document.addEventListener("change",function(e){ if(e.target && e.target.id==="backupFileInput"){ importBackupFile(e.target.files[0]); e.target.value=""; } });
+function importBackupFile(file){
+  if(!file) return; const reader=new FileReader();
+  reader.onload=function(){ try { const data=JSON.parse(reader.result); if(!data || data.backupType!=="PhonicsFluencyPortalParentBackup" || !data.state) throw new Error("This does not look like a Phonics Fluency Portal backup file."); state=mergeDeep(structuredCopy(defaultState), data.state); state.appVersion=APP_VERSION; state.sharedParentDashboardReady=true; saveState(); loadSettingsToForm(); updateDashboard(); document.getElementById("exportBox").value=JSON.stringify({restored:true,restoredFrom:data.createdAt||"unknown",currentAppVersion:APP_VERSION,stars:state.stars,attempted:state.stats.attempted,cursiveCompleted:state.cursive.completed},null,2); setBackupStatus("Backup restored successfully."); alert("Backup restored successfully."); } catch(err){ setBackupStatus("Import failed: "+err.message); alert("Import failed: "+err.message); } };
+  reader.readAsText(file);
+}
+function setBackupStatus(message){ const box=document.getElementById("backupStatus"); if(box) box.innerHTML="<strong>Status:</strong> "+message; }
+function checkForAppUpdate(){ if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistration().then(reg=>{ if(reg) reg.update(); setBackupStatus("Checked for update. Reloading the app now."); setTimeout(()=>window.location.reload(),500); }); } else { setBackupStatus("Reloading app. This browser does not support service worker updates."); setTimeout(()=>window.location.reload(),500); } }
+function resetProgress(){ if(!confirm("Reset all progress on this tablet/browser?")) return; state=structuredCopy(defaultState); session={correct:0,attempted:0,stars:0,hotStreak:0}; saveState(); updateDashboard(); alert("Progress reset."); }
+
+function loadSettingsToForm(){ document.getElementById("studentName").value=state.studentName||"Reader"; document.getElementById("dailyGoal").value=state.settings.dailyGoal||20; document.getElementById("readingLevel").value=state.settings.readingLevel||5; document.getElementById("fluencyTimer").value=state.settings.fluencyTimer||60; }
+function saveSettings(){ state.studentName=document.getElementById("studentName").value.trim()||"Reader"; state.settings.dailyGoal=Number(document.getElementById("dailyGoal").value); state.settings.readingLevel=Number(document.getElementById("readingLevel").value); state.settings.fluencyTimer=Number(document.getElementById("fluencyTimer").value); saveState(); alert("Settings saved."); }
+
+if("serviceWorker" in navigator && location.protocol !== "file:"){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("./sw.js").catch(err=>console.log("Service worker registration failed:",err)); }); }
+
+loadSettingsToForm(); resizeCanvas(); newCursiveTarget(); updateUI();
+</script>
+</body>
+</html>
