@@ -1,7 +1,7 @@
 {
   "name": "Phonics Fluency Portal",
   "short_name": "Fluency Portal",
-  "description": "Reading aloud, phonics, vocabulary, and modern simplified cursive practice.",
+  "description": "Phonics, fluency, 500+ vocabulary, cursive, and star shop.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
