@@ -1,1 +1,1 @@
-v1.3: Download parent backup, replace repo files, redeploy Cloudflare Pages. Adds 500+ vocabulary, no-repeat unless wrong, parent controls, AI prompt, star shop.
+Phonics Fluency Portal v1.4. Adds longer read-aloud passages, timer, and fresh regeneration for Read-Aloud Arena, Phonics Power, and Sight Words. Backup before replacing repo files.

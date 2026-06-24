@@ -1,7 +1,7 @@
 {
   "name": "Phonics Fluency Portal",
   "short_name": "Fluency Portal",
-  "description": "Phonics, fluency, 500+ vocabulary, cursive, and star shop.",
+  "description": "Reading aloud, phonics, sight words, vocabulary, cursive, and reward shop.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
